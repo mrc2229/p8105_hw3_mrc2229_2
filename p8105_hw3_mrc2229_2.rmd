@@ -1,0 +1,172 @@
+---
+title: "p8105_hw3_mrc2229"
+author: "Matthew Curran"
+date: "October 12, 2019"
+output: github_document
+---
+
+```{r setup, include=FALSE}
+library (tidyverse)
+library(viridis)
+library (leaflet)
+library(knitr)
+```
+
+#Problem 1
+##Bring in instacart data
+```{r}
+library(p8105.datasets)
+data("instacart")
+```
+##Examining the instacart data
+There are `r nrow (instacart)` observations in the instacart dataset and `r ncol (instacart)` variables in the instacart data set. Some of the key variables are product_name, which shows the product purchased; aisle, which tells us the aisle the purchased item comes from; and order_id, which tells us the id of the person who ordered a certain item. So we can see things like that person with order_id 1 got  `r instacart %>% filter (order_id==1, aisle_id==24) %>% summarise(n_distinct(product_name))` items from aisle 24, the fresh fruit aisle. The instacart dataset also gives information on the time an order was placed. As an example, the person with order_id 1 made their order at the `r instacart %>% filter (order_id==1) %>% summarise(max(order_hour_of_day))`th hour of the day.
+
+##Examining the aisles
+There are `r instacart %>% summarise(n_distinct(aisle))` aisles in total and the most items are ordered from the `r instacart %>% count(aisle,name="aisle_count") %>% mutate(aisle_count_rank = rank(desc(aisle_count))) %>% filter (aisle_count_rank == 1 ) %>% summarise(aisle)` and `r instacart %>% count(aisle,name="aisle_count") %>% mutate(aisle_count_rank = rank(desc(aisle_count))) %>% filter (aisle_count_rank == 2 ) %>% summarise(aisle)` aisles.
+
+##Plot of number of items ordered in each aisle
+```{r}
+items_per_aisle_plot = instacart %>%
+  count(aisle,name="aisle_count") %>%
+  filter(aisle_count>10000) %>%
+  arrange (desc(aisle)) %>%
+  ggplot(aes(x=aisle, y=aisle_count)) +
+  geom_bar(stat="identity", fill="blue") +
+  labs(
+    title = "Ammount of Items Purchased in Each Aisle",
+    x = "Aisle",
+    y ="Ammount of Items Purchased"
+  )
+
+items_per_aisle_plot + coord_flip()
+```
+
+##Table of most popular items in "baking ingrediant", "dog food care", and "packaged vegatables fruits"
+```{r}
+most_popular_items = instacart %>%
+  select(aisle,product_name) %>%
+  filter(
+    aisle == "baking ingredients"|
+    aisle == "packaged vegetables fruits"|
+    aisle == "dog food care"
+    ) %>%
+  group_by(aisle) %>%
+  count(product_name,name="product_count")%>%
+  mutate(product_count_rank = rank(desc(product_count))) %>% 
+  filter (product_count_rank < 4) %>%
+  arrange(aisle, product_count_rank) %>%
+  select(aisle, product_count_rank, product_name, product_count) %>%
+  kable()
+  
+most_popular_items
+```
+
+##Table showing day and time Pink Lady Apples and Coffee Ice Cream are ordered
+```{r}
+pink_lady_coffee = instacart %>%
+  filter(
+  product_name == "Pink Lady Apples"|
+  product_name == "Coffee Ice Cream"
+  ) %>%
+  arrange (product_name, order_dow) %>%
+  mutate(
+    order_dow = 
+    recode(order_dow,
+    "0" = "Sunday",
+    "1" = "Monday",
+    "2" = "Tuesday",
+    "3" = "Wednesday",
+    "4" = "Thursday",
+    "5" = "Friday",
+    "6" = "Saturday")
+    ) %>%
+   mutate(order_dow = fct_relevel(order_dow, "Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday")) %>%
+  group_by(product_name,order_dow) %>%
+  summarise(mean_hour_of_day=mean(order_hour_of_day)) %>%
+  separate(mean_hour_of_day, into = c("hour", "minutes"), sep = 2) %>%
+  mutate(minutes = as.numeric(minutes),
+         minutes = round(minutes*60, digits = 0),
+         hour = as.numeric(hour),
+         mean_time_of_day = paste(hour,minutes,sep = ":")) %>%
+  select(product_name, order_dow, mean_time_of_day) %>%
+  pivot_wider(
+    names_from = order_dow,
+    values_from = mean_time_of_day
+  ) %>%
+  rename(Product=product_name) %>%
+  kable()
+
+pink_lady_coffee
+```
+
+#Problem 2
+##Bring in and clean BRFSS data
+```{r}
+library(p8105.datasets)
+data("brfss_smart2010")
+brfss_data = brfss_smart2010 %>%
+  janitor::clean_names() %>%
+  filter(topic == "Overall Health" |
+  response == "Poor"|
+  response == "Fair"|
+  response == "Good"|
+  response == "Very good"|
+  response == "Excellent"
+  ) %>%
+  mutate(response = fct_relevel(response, "Poor", "Fair", "Good", "Very good", "Excellent"))
+```
+
+##States with 7 or more locations
+```{r}
+state_locations = brfss_data %>%
+  filter(year == 2002 | year ==2010) %>%
+  group_by(year, locationabbr) %>%
+  summarise(number_of_state_locations = n_distinct(locationdesc)) %>%
+  filter (number_of_state_locations >= 7)
+```
+
+In `r state_locations %>% filter (year==2002) %>% summarise(n_distinct(locationabbr))` states had 7 or more locations.Those states were CT, FL, MA, NC, NJ, and PA.
+
+In `r state_locations %>% filter (year==2010) %>% summarise(n_distinct(locationabbr))` states had 7 or more locations.Those states were CA, CO, FL, MA, MD, NC, NE, NJ, NY, OH, PA, SC, TX, WA.
+
+##An "Excellent" response only dataset and speghetti plot.
+```{r}
+excellent_data = brfss_data %>%
+  filter (response == "Excellent") %>%
+  group_by(year,locationdesc) %>%
+  mutate(ave_data_value = mean(data_value, na.rm = TRUE)) %>%
+  ungroup(locationdesc) %>%
+  select(year, locationabbr, ave_data_value) %>%
+  distinct() %>%
+  drop_na()%>%
+  ggplot(aes(x=year,y=ave_data_value))+
+  geom_line(aes(group=locationabbr, color=locationabbr))+
+  scale_color_viridis(
+    discrete = TRUE,
+    name = "State Color Key"
+  )+
+  labs(
+    title = "Average Data Value over Time within a State",
+    x = "Year",
+    y ="Average Data Value (%)"
+  ) 
+  
+excellent_data
+```
+
+##NY State distribution of data values for each responce type in 2006 and 2010
+```{r}
+NYS_data = brfss_data %>%
+  filter(year == 2006 | year == 2010) %>%
+  filter (locationabbr == "NY") %>%
+  ggplot(aes(x=locationdesc, y=data_value, fill=response))+
+  geom_bar(stat = "identity", position = "dodge")+
+  facet_grid(~year)+
+  labs(
+    title = "Data Values for Responses among Locations in NY State for 2006 and 2010",
+    x = "NY State County",
+    y = "Response Percentages"
+  ) 
+
+NYS_data + coord_flip()
+```
