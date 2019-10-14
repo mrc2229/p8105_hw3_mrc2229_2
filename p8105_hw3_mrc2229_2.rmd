@@ -34,12 +34,15 @@ items_per_aisle_plot = instacart %>%
   geom_bar(stat="identity", fill="blue") +
   labs(
     title = "Ammount of Items Purchased in Each Aisle",
-    x = "Aisle",
+    x = "Aisle (alphabetical order from bottom)",
     y ="Ammount of Items Purchased"
-  )
+  ) + 
+  coord_flip()
 
-items_per_aisle_plot + coord_flip()
+items_per_aisle_plot 
 ```
+
+* This bar graph shows the most popular aisles for purchases. Aisles are in alphabetical order starting with baby food formula at the bottom and moving up to yogurt. The most popular aisles are largely the fresh vegetables and fresh fruits.
 
 ##Table of most popular items in "baking ingredient", "dog food care", and "packaged vegatables fruits"
 ```{r}
@@ -60,6 +63,8 @@ most_popular_items = instacart %>%
   
 most_popular_items
 ```
+
+* This table shows the 3 most popular products for each of the Aisles baking ingredients, dog food care, and packaged vegetables fruits as well as the count of each product from that aisle.
 
 ##Table showing day and time Pink Lady Apples and Coffee Ice Cream are ordered
 ```{r}
@@ -94,10 +99,12 @@ pink_lady_coffee = instacart %>%
     values_from = mean_time_of_day
   ) %>%
   rename(Product=product_name) %>%
-  kable()
+  kable(format = "pandoc", caption ="Mean Hour of Day Coffee Ice Cream and Pink Lady Apples are ordered for each Day")
 
 pink_lady_coffee
 ```
+
+* This table shows the mean time of day that coffee ice cream and pink lady apples are ordered for each day of the week.
 
 #Problem 2
 ##Bring in and clean BRFSS data
@@ -162,12 +169,13 @@ NYS_data = brfss_data %>%
   geom_bar(stat = "identity", position = "dodge")+
   facet_grid(~year)+
   labs(
-    title = "Data Values for Responses among Locations in NY State for 2006 and 2010",
+    title = "Data Values for Responses among Locations for 2006 and 2010 in NY State ",
     x = "NY State County",
     y = "Response Percentages"
-  ) 
+  ) +
+   coord_flip()
 
-NYS_data + coord_flip()
+NYS_data
 ```
 
 #Problem 3
@@ -188,7 +196,7 @@ accel_data = read.csv("./hw3_data/accel_data.csv") %>%
   )
 ```
 
-The accelerometer dataset contains `r nrow (accel_data)` observations and `r ncol (accel_data)` variables. The data contains five weeks of accelerometer data and the "week" variable shows which of those five weeks that data was collected from. The "day" variable gives the day of the week and "day_id" is a numeric identifier for a specfic day of the 5 week collecion of data. "activity_minute" gives every minute of the day and "activity_count" measures activity in that minute. "weekday_or_weekend" tells us if that day was a weekday or a weekend.
+The accelerometer dataset contains `r nrow (accel_data)` observations and `r ncol (accel_data)` variables. The data contains five weeks of accelerometer data and the "week" variable shows which of those five weeks that data was collected from. The "day" variable gives the day of the week and "day_id" is a numeric identifier for a specfic day of the 5 week collecion of data. "activity_minute" gives every minute of the day and "activity_count" measures activity in that minute. "weekday_or_weekend" tells us if that day was a weekday or a weekend. The "weekend" is considered Friday, Saturday, and Sunday in this dataset rather than just Saturday and Sunday because in my opinion the weekend starts on Friday.
 
 ##Activity over ever day
 ```{r}
@@ -200,14 +208,14 @@ day_activity=accel_data %>%
 day_activity
 ```
 
-Based on this table there are no trends that jump out at first glance.
+* Based on this table there are no trends that jump out at first glance.
 
 ```{r}
 day_activity_plot=accel_data %>%
   mutate(day = fct_relevel(day, "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday")) %>%
   group_by(day_id, day, activity_minute) %>%
   ggplot(aes(x=activity_minute,y=activity_count))+
-  geom_line(aes(group=day_id, color=day))+
+  geom_point(aes(group=day_id, color=day))+
   scale_color_viridis(
     discrete = TRUE,
     name = "Day of Week Key"
@@ -216,9 +224,15 @@ day_activity_plot=accel_data %>%
     title = "24-Hour Activity Time for Each Day",
     x = "Minute of The Day",
     y ="Activity"
-  )
+  ) +
+  scale_x_continuous(
+    name = "Time of Day",
+    breaks = c(1,60,120,180,240,300,360,420,480,540,600,660,720,780,840,900,960,1020,1080,1140,1200,1260,1320,1380,1440),
+   labels = c("12am", "1am", "2am", "3am", "4am", "5am", "6am", "7am", "8am", "9am", "10am", "11am", "12pm", "1pm", "2pm", "3pm", "4pm", "5pm", "6pm", "7pm", "8pm", "9pm", "10pm", "11pm", "12am") 
+  ) +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1, vjust = 0.5))
 
 day_activity_plot
 ```
 
-It appears that activity is typically higher from about the 600th to 750th minute on Sundays and from about the 1200th to 1300th minute on Fridays and Saturdays. Very late at night (after the 1400th minute) and early mornings (from the 0th minute to the 300th minute) seem to have the lowest activity.
+* It appears that activity is typically higher from about 10:00am to 1:00pm on Sundays and from about 7:30pm to 10:00pm on Fridays and Saturdays. Very late at night (after 11:00pm) and early mornings (before about 7:00am) for every day of the week seem to have the lowest activity.
