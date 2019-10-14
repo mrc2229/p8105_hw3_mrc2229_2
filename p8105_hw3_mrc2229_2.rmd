@@ -183,9 +183,10 @@ accel_data = read.csv("./hw3_data/accel_data.csv") %>%
     names_prefix = "activity_"
     ) %>%
   mutate (
-    week_or_weekend = case_when ((day == "Friday" | day == "Saturday" | day == "Sunday") ~ "Weekend",
+    weekday_or_weekend = case_when ((day == "Friday" | day == "Saturday" | day == "Sunday") ~ "Weekend",
     TRUE ~ "Weekday"),
     activity_minute = as.integer(activity_minute)
   )
 ```
 
+The accelerometer dataset contains `r nrow (accel_data)` observations and `r ncol (accel_data)` variables. The "day" variable gives the day of the week and "day_id" is a numeric identifier for that day of the week. The data contains five weeks of accelerometer data and the "week" variable shows which of those five weeks that data was collected from. "activity_minute" gives every minute of the day and "activity_count" measures activity in that minute. "weekday_or_weekend" tells us if that day was a weekday or a weekend.
