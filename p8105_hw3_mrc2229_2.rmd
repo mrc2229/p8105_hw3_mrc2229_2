@@ -181,6 +181,11 @@ accel_data = read.csv("./hw3_data/accel_data.csv") %>%
     names_to = "activity_minute",
     values_to = "activity_count",
     names_prefix = "activity_"
-    )
-  
+    ) %>%
+  mutate (
+    week_or_weekend = case_when ((day == "Friday" | day == "Saturday" | day == "Sunday") ~ "Weekend",
+    TRUE ~ "Weekday"),
+    activity_minute = as.integer(activity_minute)
+  )
 ```
+
