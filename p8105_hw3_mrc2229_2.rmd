@@ -129,7 +129,7 @@ In `r state_locations %>% filter (year==2002) %>% summarise(n_distinct(locationa
 
 In `r state_locations %>% filter (year==2010) %>% summarise(n_distinct(locationabbr))` states had 7 or more locations.Those states were CA, CO, FL, MA, MD, NC, NE, NJ, NY, OH, PA, SC, TX, WA.
 
-##An "Excellent" response only dataset and speghetti plot.
+##An "Excellent" response only dataset and spaghetti plot.
 ```{r}
 excellent_data = brfss_data %>%
   filter (response == "Excellent") %>%
