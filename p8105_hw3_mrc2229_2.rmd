@@ -178,6 +178,8 @@ NYS_data = brfss_data %>%
 NYS_data
 ```
 
+* This table compares the relative frequency of each responce type for each NY State county in 2006 and 2010. Note there was no 2006 data for Monroe County, Erie Country, and Bronx County.
+
 #Problem 3
 ##Read in and clean Accelerometer Data
 ```{r}
