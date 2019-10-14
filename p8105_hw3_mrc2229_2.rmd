@@ -170,3 +170,17 @@ NYS_data = brfss_data %>%
 
 NYS_data + coord_flip()
 ```
+
+#Problem 3
+##Read in and clean Accelerometer Data
+```{r}
+accel_data = read.csv("./hw3_data/accel_data.csv") %>%
+  janitor::clean_names() %>%
+  pivot_longer(
+    activity_1:activity_1440,
+    names_to = "activity_minute",
+    values_to = "activity_count",
+    names_prefix = "activity_"
+    )
+  
+```
