@@ -41,7 +41,7 @@ items_per_aisle_plot = instacart %>%
 items_per_aisle_plot + coord_flip()
 ```
 
-##Table of most popular items in "baking ingrediant", "dog food care", and "packaged vegatables fruits"
+##Table of most popular items in "baking ingredient", "dog food care", and "packaged vegatables fruits"
 ```{r}
 most_popular_items = instacart %>%
   select(aisle,product_name) %>%
@@ -133,12 +133,11 @@ In `r state_locations %>% filter (year==2010) %>% summarise(n_distinct(locationa
 ```{r}
 excellent_data = brfss_data %>%
   filter (response == "Excellent") %>%
-  group_by(year,locationdesc) %>%
-  mutate(ave_data_value = mean(data_value, na.rm = TRUE)) %>%
-  ungroup(locationdesc) %>%
+  group_by(year, locationabbr) %>%
+  mutate(ave_data_value = mean(data_value)) %>%
   select(year, locationabbr, ave_data_value) %>%
   distinct() %>%
-  drop_na()%>%
+  drop_na() %>%
   ggplot(aes(x=year,y=ave_data_value))+
   geom_line(aes(group=locationabbr, color=locationabbr))+
   scale_color_viridis(
